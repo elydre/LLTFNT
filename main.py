@@ -156,9 +156,9 @@ def touch(x):
         dossier = dossier[i]
     dossier[x] = None
 
-def cheat_up():
+def cheat_up(x):
     global score, step
-    step += 1
+    step += int(x)
     print(f"new feature unlocked (step = {step}, score = {score})")
     quoi_faire()
 
@@ -184,7 +184,7 @@ commandes_disponibles = {
     "cd":    (0, lambda x = "/": cd(x[0]),         "Change le dossier courant"),
     "?":     (0, lambda: quoi_faire(),             "Affiche quoi faire"),
     "clear": (0, lambda: clear(),                  "Efface l'écran"),
-    "cu":    (0, lambda: cheat_up(),               "// Cheat up"),
+    "cu":    (0, lambda x = "1": cheat_up(x[0]),      "// Cheat up"),
     "help":  (0, lambda: term_help(),              "Affiche l'aide"),
     "cat":   (1, lambda x = "/": cat(x[0]),        "Affiche le contenu du fichier"),
     "touch": (2, lambda x = "/": touch(x[0]),      "Crée un fichier"),
