@@ -93,25 +93,21 @@ def entry_to_path(entred_path):
     return "/".join([i for i in liste if i != ""]).replace("//", "/")
 
 def cheak_me_if_the_path_exist_please(entred_path):
-    liste = ["/"]
-    liste.extend(entred_path.split("/"))
+    liste = ["/", *[e for e in entred_path.split("/") if e != ""]]
     dossier = filesystem
     for i in liste:
-        if i != "":
-            if i in dossier:
-                dossier = dossier[i]
-            else:
-                return False
+        if i in dossier:
+            dossier = dossier[i]
+        else:
+            return False
     return True
 
 def ls():
     # affiche le contenu du dossier
-    liste = ["/"]
-    liste.extend(path.split("/"))
+    liste = ["/", *[e for e in path.split("/") if e != ""]]
     dossier = filesystem
     for i in liste:
-        if i != "":
-            dossier = dossier[i]
+        dossier = dossier[i]
     print(f"Contenu de {path}:")
     for k, v in dossier.items():
         if isinstance(v, dict):
@@ -139,9 +135,7 @@ def cat(x):
     if not cheak_me_if_the_path_exist_please(new):
         cprint(f"Le fichier {new} n'existe pas", "red")
         return
-    liste = ["/"]
-    liste.extend(new.split("/"))
-    liste = [i for i in liste if i != ""]
+    liste = ["/", *[e for e in new.split("/") if e != ""]]
     dossier = filesystem
     for i in liste:
         dossier = dossier[i]
@@ -155,9 +149,7 @@ def cat(x):
         quoi_faire()
 
 def touch(x):
-    liste = ["/"]
-    liste.extend(path.split("/"))
-    liste = [i for i in liste if i != ""]
+    liste = ["/", *[e for e in path.split("/") if e != ""]]
     dossier = filesystem
     for i in liste:
         print(i, dossier, dossier[i])
@@ -198,9 +190,8 @@ commandes_disponibles = {
     "touch": (2, lambda x = "/": touch(x[0]),      "Crée un fichier"),
 }
 
-print("Bienvenue dans le terminal de l'ordinateur")
-print("Pour afficher l'aide, tapez '?'")
-print("Pour afficher le score, tapez 'score'")
+print("Bienvenue dans LLTFNT (Linux Like Terminal For NSI Terminal)")
+print("Tapez '?' pour savoir quoi faire ou 'help' pour l'aide")
 
 quoi_faire()
 
@@ -217,5 +208,5 @@ while True:
             commandes_disponibles[commande[0]][1](commande[1:])
         else:
             commandes_disponibles[commande[0]][1]()
-    else:
+    elif commande[0] != "":
         print("Commande inconnue")
