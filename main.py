@@ -5,7 +5,24 @@ import os
 path = "/"
 score = 0
 
+quoi_faire_string = [ """
+Vous êtes dans le dossier /
+Votre mission est de trouver le fichier 'perso.txt'
+Pour cela, vous pouvez utiliser les commandes 'ls' et 'cd'
+""", """
+Vous avez trouvé le fichier 'perso.txt'
+Vous pouvez maintenant lire son contenu, et aller a l'emplacement demandé
+Pour cela, vous pouvez utiliser la commande 'cat'
+""", """
+Vous avez lu le fichier 'perso.txt'
+Vous pouvez maintenant créer un fichier 'maths.txt' dans le dossier 'documents' de Mathis
+Pour cela, vous pouvez utiliser la commande 'touch'
+"""
+]
+
 step = 0
+
+perso_content = "Bonjour, je m'appelle Lea, et je veut vraiment aller voir le cours de maths de Mathis"
 
 filesystem = {
     "/" : {
@@ -13,7 +30,7 @@ filesystem = {
             "Lea" : {
                 "documents" : {
                     "cours.txt" : None,
-                    "perso.txt" : "Bonjour, je m'appelle Lea, et je veut vraiment aller voir le cours de maths de Mathis",
+                    "perso.txt" : perso_content,
                 },
                 "pictures" : {
                     "chat.png" : None,
@@ -52,25 +69,10 @@ filesystem = {
     }
 }
 
-def ls(path):
-    # affiche le contenu du dossier
-    liste = ["/"]
-    liste.extend(path.split("/"))
-    dossier = filesystem
-    for i in liste:
-        if i != "":
-            dossier = dossier[i]
-    print(f"Contenu de {path}:")
-    for k, v in dossier.items():
-        if isinstance(v, str) or v is None:
-            cprint(f"\t{k} (fichier)", "yellow")
-            if k == "perso.txt":
-                global step, score
-                step, score = 1, score + 1
-                # affiche l'aide suivante
-                quoi_faire()                
-        else:
-            cprint(f"\t{k} (dossier)", "blue")
+def edit_vales(in_step = 0, score_plus = 0):
+    global step, score
+    step = in_step
+    score += score_plus
 
 def entry_to_path(entred_path):
     if len(entred_path) == 0:
@@ -102,6 +104,25 @@ def cheak_me_if_the_path_exist_please(entred_path):
                 return False
     return True
 
+def ls():
+    # affiche le contenu du dossier
+    liste = ["/"]
+    liste.extend(path.split("/"))
+    dossier = filesystem
+    for i in liste:
+        if i != "":
+            dossier = dossier[i]
+    print(f"Contenu de {path}:")
+    for k, v in dossier.items():
+        if isinstance(v, dict):
+            cprint(f"\t{k} (dossier)", "blue")
+            continue
+        cprint(f"\t{k} (fichier)", "yellow")
+        if k == "perso.txt":
+            edit_vales(1, 1)
+            # affiche l'aide suivante
+            quoi_faire()
+
 def cd(x):
     # change le dossier courant
     new = entry_to_path(x)
@@ -120,38 +141,61 @@ def cat(x):
         return
     liste = ["/"]
     liste.extend(new.split("/"))
+    liste = [i for i in liste if i != ""]
     dossier = filesystem
     for i in liste:
-        if i != "":
-            dossier = dossier[i]
+        dossier = dossier[i]
+    if isinstance(dossier, dict):
+        cprint(f"{new} est un dossier, pas un fichier", "red")
+        return
     cprint(dossier, "magenta")
+    if dossier == perso_content:
+        edit_vales(2, 1)
+        # affiche l'aide suivante
+        quoi_faire()
 
-def quoi_faire(): # sourcery skip: extract-duplicate-method, merge-duplicate-blocks
-    if step == 0:
-        cprint("Vous êtes dans le dossier /", "green")
-        cprint("Votre mission est de trouver le fichier 'perso.txt'", "green")
-        cprint("Pour cela, vous pouvez utiliser les commandes 'ls' et 'cd'", "green")
-    if step == 1:
-        cprint("Vous avez trouvé le fichier 'perso.txt'", "green")
-        cprint("Vous pouvez maintenant lire son contenu, et aller a l'emplacement demandé", "green")
-        cprint("Pour cela, vous pouvez utiliser la commande 'cat'", "green")
-        commandes_disponibles["cat"] = lambda x : cat(x[0])
+def touch(x):
+    liste = ["/"]
+    liste.extend(path.split("/"))
+    liste = [i for i in liste if i != ""]
+    dossier = filesystem
+    for i in liste:
+        print(i, dossier, dossier[i])
+        dossier = dossier[i]
+    dossier[x] = None
 
 def cheat_up():
     global score, step
     step += 1
-    print("new feature unlocked")
+    print(f"new feature unlocked (step = {step}, score = {score})")
     quoi_faire()
 
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")
+
+def term_help():
+    for k, v in commandes_disponibles.items():
+        if v[2].startswith("//"):
+            continue # c'est une commande cachée
+        print("[{}] {: <6} : {}".format(v[0], k, v[2]))
+
+def quoi_faire(): # sourcery skip: extract-duplicate-method, merge-duplicate-blocks
+    if step < len(quoi_faire_string):
+        cprint(quoi_faire_string[step][1:-1], "green")
+    else:
+        cprint(f"Le texte pour step {step} n'a pas été défini", "green")
+
 commandes_disponibles = {
-    "score" : lambda : print(f"Score: {score}"),
-    "exit" : lambda : exit(),
-    "ls" : lambda : ls(path),
-    "cd" : lambda x="/" : cd(x[0]),
-    "?" : lambda : quoi_faire(),
-    "clear": lambda : os.system("cls") if os.name == "nt" else os.system("clear"),
-    "cat" : lambda : cprint("Cat : commande pas encore débloquée", "#ff8800"),
-    "cheat" : lambda : cheat_up(),
+    "score": (0, lambda: print(f"Score: {score}"), "Affiche le score"),
+    "exit":  (0, lambda: exit(),                   "Quitte le terminal"),
+    "ls":    (0, lambda: ls(),                     "Affiche le contenu du dossier"),
+    "cd":    (0, lambda x = "/": cd(x[0]),         "Change le dossier courant"),
+    "?":     (0, lambda: quoi_faire(),             "Affiche quoi faire"),
+    "clear": (0, lambda: clear(),                  "Efface l'écran"),
+    "cu":    (0, lambda: cheat_up(),               "// Cheat up"),
+    "help":  (0, lambda: term_help(),              "Affiche l'aide"),
+    "cat":   (1, lambda x = "/": cat(x[0]),        "Affiche le contenu du fichier"),
+    "touch": (2, lambda x = "/": touch(x[0]),      "Crée un fichier"),
 }
 
 print("Bienvenue dans le terminal de l'ordinateur")
@@ -165,9 +209,13 @@ while True:
     cmd = input()
     commande = cmd.split(" ")
     if commande[0] in commandes_disponibles:
+        if step < commandes_disponibles[commande[0]][0]:
+            cprint("Vous n'avez pas encore débloqué cette commande", "red")
+            cprint(f"Vous etes niveau {step} ({commandes_disponibles[commande[0]][0]} requis)", "red")
+            continue
         if len(commande) > 1:
-            commandes_disponibles[commande[0]](commande[1:])
+            commandes_disponibles[commande[0]][1](commande[1:])
         else:
-            commandes_disponibles[commande[0]]()
+            commandes_disponibles[commande[0]][1]()
     else:
         print("Commande inconnue")
