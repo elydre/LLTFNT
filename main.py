@@ -111,9 +111,9 @@ def ls():
     print(f"Contenu de {path}:")
     for k, v in dossier.items():
         if isinstance(v, dict):
-            cprint(f"\t{k} (dossier)", "blue")
+            cprint(f" {k} (dossier)", "blue")
             continue
-        cprint(f"\t{k} (fichier)", "yellow")
+        cprint(f" {k} (fichier)", "yellow")
         if k == "perso.txt":
             edit_vales(1, 1)
             # affiche l'aide suivante
@@ -167,15 +167,15 @@ def clear():
 
 def term_help():
     for k, v in commandes_disponibles.items():
-        if v[2].startswith("//"):
-            continue # c'est une commande cachée
-        print("[{}] {: <6} : {}".format(v[0], k, v[2]))
+        if v[2].startswith("//") or v[0] > step:
+            continue
+        print("{: <6} : {}".format(k, v[2]))
 
 def quoi_faire(): # sourcery skip: extract-duplicate-method, merge-duplicate-blocks
     if step < len(quoi_faire_string):
-        cprint(quoi_faire_string[step][1:-1], "green")
+        cprint(quoi_faire_string[step][1:-1], "#00ffaa")
     else:
-        cprint(f"Le texte pour step {step} n'a pas été défini", "green")
+        cprint(f"Le texte pour step {step} n'a pas été défini", "red")
 
 commandes_disponibles = {
     "score": (0, lambda: print(f"Score: {score}"), "Affiche le score"),
@@ -196,7 +196,8 @@ print("Tapez '?' pour savoir quoi faire ou 'help' pour l'aide")
 quoi_faire()
 
 while True:
-    print(end=f"{path} $ ")
+    for e in (("user@lltfnt", "#55ff55"), (":", "white"), (path, "blue"), ("$ ", "white")):
+        cprint(e[0], e[1], "k")
     cmd = input()
     commande = cmd.split(" ")
     if commande[0] in commandes_disponibles:
