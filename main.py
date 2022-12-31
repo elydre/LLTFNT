@@ -78,11 +78,11 @@ def entry_to_path(entred_path):
     if len(entred_path) == 0:
         return path
     if entred_path[0] == "/":
+        while "//" in entred_path:
+            entred_path = entred_path.replace("//", "/")
         return entred_path
 
-    liste = ["/"]
-    liste.extend(path.split("/"))
-    liste.extend(entred_path.split("/"))
+    liste = ["/", *path.split("/"), *entred_path.split("/")]
     # remove empty strings and "."
     liste = [i for i in liste if i not in ["", "."]]
     # remove if "..", remove previous
@@ -90,7 +90,10 @@ def entry_to_path(entred_path):
         if liste[i] == ".." and i > 0:
             liste[i] = ""
             liste[i-1] = ""
-    return "/".join([i for i in liste if i != ""]).replace("//", "/")
+    output = "/".join(["/"] + [i for i in liste if i != ""])
+    while "//" in output:
+        output = output.replace("//", "/")
+    return output
 
 def cheak_me_if_the_path_exist_please(entred_path):
     liste = ["/", *[e for e in entred_path.split("/") if e != ""]]
@@ -104,9 +107,8 @@ def cheak_me_if_the_path_exist_please(entred_path):
 
 def ls():
     # affiche le contenu du dossier
-    liste = ["/", *[e for e in path.split("/") if e != ""]]
     dossier = filesystem
-    for i in liste:
+    for i in ["/", *[e for e in path.split("/") if e != ""]]:
         dossier = dossier[i]
     print(f"Contenu de {path}:")
     for k, v in dossier.items():
@@ -135,9 +137,8 @@ def cat(x):
     if not cheak_me_if_the_path_exist_please(new):
         cprint(f"Le fichier {new} n'existe pas", "red")
         return
-    liste = ["/", *[e for e in new.split("/") if e != ""]]
     dossier = filesystem
-    for i in liste:
+    for i in ["/", *[e for e in new.split("/") if e != ""]]:
         dossier = dossier[i]
     if isinstance(dossier, dict):
         cprint(f"{new} est un dossier, pas un fichier", "red")
@@ -149,9 +150,8 @@ def cat(x):
         quoi_faire()
 
 def touch(x):
-    liste = ["/", *[e for e in path.split("/") if e != ""]]
     dossier = filesystem
-    for i in liste:
+    for i in ["/", *[e for e in path.split("/") if e != ""]]:
         print(i, dossier, dossier[i])
         dossier = dossier[i]
     dossier[x] = None
