@@ -27,8 +27,14 @@ Maintenant, il faut déplacer le fichier 'maths.txt' dans le dossier 'maths'
 Pour cela, vous pouvez utiliser la commande 'mv'
 Note : ce n'est pas le vrai mv, mais un mv simplifié, on ne peut déplacer qu'un fichier dans un dossier au même emplacement !
 """, """
-Félicitations ! Vous avez déplacé le fichier 'maths.txt' dans le dossier 'maths'
-C'est la fin de ce qu'a fait Loris pour le moment, mais il y a encore beaucoup de choses à faire !
+Bravo ! Vous avez déplacé le fichier 'maths.txt' dans le dossier 'maths'
+Par contre, il y a un problème, le fichier 'maths.txt' est vide !
+La commande 'touch' ne permet pas de créer un fichier avec du contenu
+Par contre, vous pouvez utiliser la commande 'echo' pour écrire dans un fichier (syntaxe : `echo "contenu" > fichier`)
+La commande ls ne fonctionne plus correctement, allez donc la fixer en écrivant "LS" dans son fichier ! (le fichier est dans le dossier '/bin')
+""", """
+C'est bon, la commande 'ls' fonctionne à nouveau !
+C'est tout pour cette fois, mais vous pouvez toujours continuer à explorer le système de fichiers !
 """
 ]
 
@@ -219,6 +225,34 @@ def mv(x, y):
         edit_vales(5, 1)
         # affiche l'aide suivante
         quoi_faire()
+        
+def echo(x, *args):
+    # if it's just a print
+    if len(args[0]) == 0:
+        cprint(x, "magenta")
+        return
+    # if it's a file creation
+    dossier = filesystem
+    for i in ["/", *[e for e in path.split("/") if e != ""]]:
+        dossier = dossier[i]
+    if args[0][0] != ">":
+        cprint("Syntaxe incorrecte", "red")
+        return
+    if len(args[0]) == 1:
+        cprint("Syntaxe incorrecte", "red")
+        return
+    if len(x) < 2:
+        cprint("Syntaxe incorrecte", "red")
+        return
+    if x[0] != '"' or x[-1] != '"':
+        cprint("Syntaxe incorrecte", "red")
+        return
+    dossier[args[0][1]] = x[1:-1]
+    # if the user put "LS" in the file "/bin/ls.bin"
+    if path == "/bin" and args[0][1] == "ls.bin" and x[1:-1] == "LS":
+        edit_vales(6, 1)
+        # affiche l'aide suivante
+        quoi_faire()
 
 def cheat_up(x):
     global score, step
@@ -257,6 +291,7 @@ commandes_disponibles = {
     "touch": (2, lambda x = "/", *args, **kwargs: touch(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                     "Crée un fichier"),
     "mkdir" : (3, lambda x = "/", *args, **kwargs : mkdir(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                   "Crée un dossier"),
     "mv" : (4, lambda x = "/", *args, **kwargs: mv(x[0], x[1]) if (len(args) == len(kwargs) == 0 and len(x) == 2) else too_much_arguments(args, kwargs),    "Déplace un fichier ou un dossier"),
+    "echo" : (5, lambda x = "/", *args, **kwargs: echo(x[0], x[1:]) if (len(args) == len(kwargs) == 0 and len(x) >= 1) else too_much_arguments(args, kwargs),    "Déplace un fichier ou un dossier"),
 }
 
 print("Bienvenue dans LLTFNT (Linux Like Terminal For NSI Terminal)")
