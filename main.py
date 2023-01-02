@@ -25,6 +25,10 @@ Pour cela, vous pouvez utiliser la commande 'mkdir', directement dans le dossier
 Bravo ! Vous avez créé le dossier 'maths' dans le dossier 'documents' de Mathis
 Maintenant, il faut déplacer le fichier 'maths.txt' dans le dossier 'maths'
 Pour cela, vous pouvez utiliser la commande 'mv'
+Note : ce n'est pas le vrai mv, mais un mv simplifié, on ne peut déplacer qu'un fichier dans un dossier au même emplacement !
+""", """
+Félicitations ! Vous avez déplacé le fichier 'maths.txt' dans le dossier 'maths'
+C'est la fin de ce qu'a fait Loris pour le moment, mais il y a encore beaucoup de choses à faire !
 """
 ]
 
@@ -179,7 +183,42 @@ def mkdir(x):
         quoi_faire()
 
 def mv(x, y):
-    ...
+    # we go to the x and y folder
+    x_path, y_path = "/", "/"
+    if path != "/":
+        x_path = f"{path}/"
+        y_path = f"{path}/"
+    x_path, y_path = x_path + x, y_path + y
+    # we remove the last element of the path
+    x_path = "/".join(x_path.split("/")[:-1])
+    y_path = "/".join(y_path.split("/")[:-1])
+    dossier_x = filesystem
+    dossier_y = filesystem
+    for i in ["/", *[e for e in x_path.split("/") if e != ""]]:
+        try:
+            dossier_x = dossier_x[i]
+        except Exception:
+            cprint(f"Le fichier {x_path} n'existe pas", "red")
+            return
+    for i in ["/", *[e for e in y_path.split("/") if e != ""]]:
+        try:
+            dossier_y = dossier_y[i]
+        except Exception:
+            cprint(f"Le dossier {y_path} n'existe pas", "red")
+            return
+    if x not in dossier_x:
+        cprint(f"Le fichier {x} n'existe pas", "red")
+        return
+    if isinstance(dossier_y, str):
+        cprint(f"{y} est un fichier, pas un dossier", "red")
+        return
+    dossier_x[y][x] = dossier_x[x]
+    del dossier_x[x]
+    # if the user moved a file names "maths.txt" in the /home/Mathis/documents folder
+    if x_path == "/home/Mathis/documents" and x == "maths.txt":
+        edit_vales(5, 1)
+        # affiche l'aide suivante
+        quoi_faire()
 
 def cheat_up(x):
     global score, step
@@ -203,21 +242,21 @@ def quoi_faire(): # sourcery skip: extract-duplicate-method, merge-duplicate-blo
         cprint(f"Le texte pour step {step} n'a pas été défini", "red")
 
 def too_much_arguments(args, kwargs):
-    cprint("Trop d'arguments pour cette commande !", "red")
+    cprint("Le nombre d'arguments pour cette commande n'est pas correct !", "red")
 
 commandes_disponibles = {
-    "score": (0, lambda *args, **kwargs: print(f"Score: {score}") if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs), "Affiche le score"),
-    "exit":  (0, lambda *args, **kwargs: exit() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                   "Quitte le terminal"),
-    "ls":    (0, lambda *args, **kwargs: ls() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                     "Affiche le contenu du dossier"),
-    "cd":    (0, lambda x = "/", *args, **kwargs: cd(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),        "Change le dossier courant"),
-    "?":     (0, lambda *args, **kwargs: quoi_faire() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),             "Affiche quoi faire"),
-    "clear": (0, lambda *args, **kwargs: clear() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                  "Efface l'écran"),
-    "cu":    (0, lambda x = "1", *args, **kwargs: cheat_up(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),  "// Cheat up"),
-    "help":  (0, lambda *args, **kwargs: term_help() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),              "Affiche l'aide"),
-    "cat":   (1, lambda x = "/", *args, **kwargs: cat(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),       "Affiche le contenu du fichier"),
-    "touch": (2, lambda x = "/", *args, **kwargs: touch(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),     "Crée un fichier"),
-    "mkdir" : (3, lambda x = "/", *args, **kwargs : mkdir(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),   "Crée un dossier"),
-    "mv" : (4, lambda x = "/", y = "/", *args, **kwargs: mv(x, y) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs), "Déplace un fichier ou un dossier"),
+    "score": (0, lambda *args, **kwargs: print(f"Score: {score}") if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                 "Affiche le score"),
+    "exit":  (0, lambda *args, **kwargs: exit() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                   "Quitte le terminal"),
+    "ls":    (0, lambda *args, **kwargs: ls() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                     "Affiche le contenu du dossier"),
+    "cd":    (0, lambda x = "/", *args, **kwargs: cd(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                        "Change le dossier courant"),
+    "?":     (0, lambda *args, **kwargs: quoi_faire() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                             "Affiche quoi faire"),
+    "clear": (0, lambda *args, **kwargs: clear() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                  "Efface l'écran"),
+    "cu":    (0, lambda x = "1", *args, **kwargs: cheat_up(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                  "// Cheat up"),
+    "help":  (0, lambda *args, **kwargs: term_help() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                              "Affiche l'aide"),
+    "cat":   (1, lambda x = "/", *args, **kwargs: cat(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                       "Affiche le contenu du fichier"),
+    "touch": (2, lambda x = "/", *args, **kwargs: touch(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                     "Crée un fichier"),
+    "mkdir" : (3, lambda x = "/", *args, **kwargs : mkdir(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                   "Crée un dossier"),
+    "mv" : (4, lambda x = "/", *args, **kwargs: mv(x[0], x[1]) if (len(args) == len(kwargs) == 0 and len(x) == 2) else too_much_arguments(args, kwargs),    "Déplace un fichier ou un dossier"),
 }
 
 print("Bienvenue dans LLTFNT (Linux Like Terminal For NSI Terminal)")
