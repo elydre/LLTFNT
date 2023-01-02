@@ -1,5 +1,6 @@
 from mod.ColorPrint import colorprint as cprint
 from mod.retutu import retutu
+from time import sleep
 import os
 
 path = "/"
@@ -34,7 +35,15 @@ Par contre, vous pouvez utiliser la commande 'echo' pour écrire dans un fichier
 La commande ls ne fonctionne plus correctement, allez donc la fixer en écrivant "LS" dans son fichier ! (le fichier est dans le dossier '/bin')
 """, """
 C'est bon, la commande 'ls' fonctionne à nouveau !
-C'est tout pour cette fois, mais vous pouvez toujours continuer à explorer le système de fichiers !
+Maintenant, on peut afficher l'arborescence du dossier du système de fichier
+Cette commande s'appelle 'tree', mais elle n'existe pas encore !
+Pour l'installer, vous pouvez utiliser la commande 'apt' en superutilisateur (syntaxe : `sudo apt install tree`)
+""", """
+Bravo ! Vous pouvez maintenant utiliser la commande 'tree' !
+Maintenant, vous pouvez afficher l'arborescence du dossier du système de fichier
+""", """
+Bravo ! vous avez affiché l'arborescence du dossier du système de fichier
+Vous avez terminé l'activité, un easter eggs est caché, à vous de le trouver !
 """
 ]
 
@@ -137,6 +146,25 @@ def ls():
             edit_vales(1, 1)
             # affiche l'aide suivante
             quoi_faire()
+
+def tree():
+    # affiche l'arborescence du dossier
+    dossier = filesystem
+    for i in ["/", *[e for e in path.split("/") if e != ""]]:
+        dossier = dossier[i]
+    print(f"Arborescence de {path}:")
+    def print_tree(dossier, level = 0):
+        for k, v in dossier.items():
+            if isinstance(v, dict):
+                cprint(f"{'  '*level} {k} (dossier)", "blue")
+                print_tree(v, level + 1)
+                continue
+            cprint(f"{'  '*level} {k} (fichier)", "yellow")
+    print_tree(dossier)
+    if path == "/":
+        edit_vales(8, 1)
+        # affiche l'aide suivante
+        quoi_faire()
 
 def cd(x):
     # change le dossier courant
@@ -278,20 +306,64 @@ def quoi_faire(): # sourcery skip: extract-duplicate-method, merge-duplicate-blo
 def too_much_arguments(args, kwargs):
     cprint("Le nombre d'arguments pour cette commande n'est pas correct !", "red")
 
+def apt(x, as_sudo):  # sourcery skip: extract-method
+    if not as_sudo:
+        cprint("Vous devez être root pour utiliser cette commande", "red")
+        return
+    if x[0] == "update":
+        cprint("Toutes les sources sont à jour!", "white")
+    if x[0] == "upgrade":
+        cprint("Tous les paquets sont à jour!", "white")
+    if x[0] == "install":
+        if x[1] == "tree":
+            cprint("installation de tree  [", "white", "k")
+            for _ in range(20):
+                cprint("=", "#00aaff", "k")
+                sleep(0.1)
+            cprint("]\ntree installé avec succès!", "white")
+            edit_vales(7, 1)
+            # affiche l'aide suivante
+            quoi_faire()
+        else:
+            cprint(f"Le paquet {x[1]} n'existe pas", "red")
+
+def sudo(commande):
+    if len(commande) == 0:
+        cprint("Syntaxe incorrecte", "red")
+        return
+    print(f"la commande '{' '.join(commande)}' a été lancée avec les droits root")
+    if commande[0] == "apt":
+        apt(commande[1:], True)
+    elif commande[0] in commandes_disponibles:
+        if step < commandes_disponibles[commande[0]][0]:
+            cprint("Vous n'avez pas encore débloqué cette commande", "red")
+            cprint(f"Vous etes niveau {step} ({commandes_disponibles[commande[0]][0]} requis)", "red")
+            return
+        if len(commande) > 1:
+            commandes_disponibles[commande[0]][1](commande[1:])
+        else:
+            commandes_disponibles[commande[0]][1]()
+    else:
+        cprint("Commande inconnue", "red")
+
+
 commandes_disponibles = {
-    "score": (0, lambda *args, **kwargs: print(f"Score: {score}") if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                 "Affiche le score"),
-    "exit":  (0, lambda *args, **kwargs: exit() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                   "Quitte le terminal"),
-    "ls":    (0, lambda *args, **kwargs: ls() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                     "Affiche le contenu du dossier"),
-    "cd":    (0, lambda x = "/", *args, **kwargs: cd(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                        "Change le dossier courant"),
-    "?":     (0, lambda *args, **kwargs: quoi_faire() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                             "Affiche quoi faire"),
-    "clear": (0, lambda *args, **kwargs: clear() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                  "Efface l'écran"),
-    "cu":    (0, lambda x = "1", *args, **kwargs: cheat_up(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                  "// Cheat up"),
-    "help":  (0, lambda *args, **kwargs: term_help() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                              "Affiche l'aide"),
-    "cat":   (1, lambda x = "/", *args, **kwargs: cat(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                       "Affiche le contenu du fichier"),
-    "touch": (2, lambda x = "/", *args, **kwargs: touch(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                     "Crée un fichier"),
-    "mkdir" : (3, lambda x = "/", *args, **kwargs : mkdir(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                   "Crée un dossier"),
-    "mv" : (4, lambda x = "/", *args, **kwargs: mv(x[0], x[1]) if (len(args) == len(kwargs) == 0 and len(x) == 2) else too_much_arguments(args, kwargs),    "Déplace un fichier ou un dossier"),
-    "echo" : (5, lambda x = "/", *args, **kwargs: echo(x[0], x[1:]) if (len(args) == len(kwargs) == 0 and len(x) >= 1) else too_much_arguments(args, kwargs),    "Déplace un fichier ou un dossier"),
+    "score": (0, lambda *args, **kwargs: print(f"Score: {score}") if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                   "Affiche le score"),
+    "exit":  (0, lambda *args, **kwargs: exit() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                     "Quitte le terminal"),
+    "ls":    (0, lambda *args, **kwargs: ls() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                       "Affiche le contenu du dossier"),
+    "cd":    (0, lambda x = "/", *args, **kwargs: cd(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                          "Change le dossier courant"),
+    "?":     (0, lambda *args, **kwargs: quoi_faire() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                               "Affiche quoi faire"),
+    "clear": (0, lambda *args, **kwargs: clear() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                    "Efface l'écran"),
+    "cu":    (0, lambda x = "1", *args, **kwargs: cheat_up(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                    "// Cheat up"),
+    "help":  (0, lambda *args, **kwargs: term_help() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                "Affiche l'aide"),
+    "cat":   (1, lambda x = "/", *args, **kwargs: cat(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                         "Affiche le contenu du fichier"),
+    "touch": (2, lambda x = "/", *args, **kwargs: touch(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                       "Crée un fichier"),
+    "mkdir": (3, lambda x = "/", *args, **kwargs : mkdir(x[0]) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                      "Crée un dossier"),
+    "mv":    (4, lambda x = "/", *args, **kwargs: mv(x[0], x[1]) if (len(args) == len(kwargs) == 0 and len(x) == 2) else too_much_arguments(args, kwargs),    "Déplace un fichier ou un dossier"),
+    "echo":  (5, lambda x = "/", *args, **kwargs: echo(x[0], x[1:]) if (len(args) == len(kwargs) == 0 and len(x) >= 1) else too_much_arguments(args, kwargs), "Déplace un fichier ou un dossier"),
+    "sudo":  (6, lambda x = [], *args, **kwargs:  sudo(x) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                           "Execute une commande en tant que root"),
+    "apt":   (6, lambda x = [], *args, **kwargs:  apt(x, 0) if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                         "Gestionnaire de paquets"),
+    "tree":  (7, lambda *args, **kwargs: tree() if (len(args) == len(kwargs) == 0) else too_much_arguments(args, kwargs),                                     "Affiche l'arborescence du dossier courant"),
 }
 
 print("Bienvenue dans LLTFNT (Linux Like Terminal For NSI Terminal)")
@@ -314,4 +386,4 @@ while True:
         else:
             commandes_disponibles[commande[0]][1]()
     elif commande[0] != "":
-        print("Commande inconnue")
+        cprint("Commande inconnue", "red")
